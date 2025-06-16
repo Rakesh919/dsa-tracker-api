@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public class PasswordValidator implements ConstraintValidator<ValidPassword, String> {
 
     private static final List<String> COMMON_PASSWORDS = Arrays.asList(
-            "123456", "password", "12345678", "qwerty", "123456789"
+            "123456", "password", "12345678", "qwerty", "123456789","abc@1234","john@1234","abcd@1234"
     );
 
     @Override

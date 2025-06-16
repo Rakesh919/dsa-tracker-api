@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- Load logging path from properties or default to 'logs' -->
     <springProperty name="LOG_PATH" source="logging.file.path" defaultValue="logs" />
     <timestamp key="date" datePattern="yyyy-MM-dd" />
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
@@ -8,8 +7,8 @@
     <!-- ==================== DEV PROFILE ==================== -->
     <springProfile name="dev">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>${LOG_PATTERN}</pattern>
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n</pattern>
             </encoder>
         </appender>
         <root level="INFO">
@@ -19,9 +18,8 @@
 
     <!-- ==================== PROD PROFILE ==================== -->
     <springProfile name="prod">
-        <!-- Info and above Logs -->
+        <!-- Info Logs -->
         <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>${LOG_PATH}/info.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${LOG_PATH}/info-%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>30</maxHistory>
@@ -35,9 +33,8 @@
             </encoder>
         </appender>
 
-        <!-- Error only Logs -->
+        <!-- Error Logs -->
         <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>${LOG_PATH}/error.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${LOG_PATH}/error-%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>30</maxHistory>
@@ -55,7 +52,6 @@
 
         <!-- Combined Logs -->
         <appender name="ALL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>${LOG_PATH}/combined.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${LOG_PATH}/combined-%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>30</maxHistory>

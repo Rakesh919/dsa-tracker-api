@@ -1,5 +1,7 @@
 package com.company.config;
 
+import com.company.filter.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,15 +24,19 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
+
     @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for development; enable for production
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/**").permitAll()
+                            .requestMatchers("/auth/**").permitAll()
                             .anyRequest().authenticated()
                     )
+                    .addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                     .httpBasic(httpBasic -> {})// Use basic authentication
         .formLogin(AbstractHttpConfigurer::disable);
             return http.build();
@@ -55,7 +61,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:3000", "http://localhost:5173","/**"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
