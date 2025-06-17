@@ -52,4 +52,24 @@ public class JwtUtil {
 
         return parser.parseSignedClaims(token).getPayload();
     }
+
+    public int extractUserId(String token) {
+        JwtParser parser = Jwts.parser()
+                .verifyWith(key)
+                .build();
+
+        Claims claims = parser.parseSignedClaims(token).getPayload();
+        String userIdStr = claims.getSubject(); // subject = userId as String
+        return Integer.parseInt(userIdStr);     // convert to int
+    }
+
+    public String extractEmail(String token) {
+        JwtParser parser = Jwts.parser()
+                .verifyWith(key)
+                .build();
+
+        Claims claims = parser.parseSignedClaims(token).getPayload();
+        return claims.get("email", String.class);
+    }
+
 }

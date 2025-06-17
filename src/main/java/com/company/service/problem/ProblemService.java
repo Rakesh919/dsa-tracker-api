@@ -58,4 +58,13 @@ public class ProblemService {
             throw new RuntimeException(e);
         }
     }
+
+    public List<Problem> findProblemByDifficultyLevel(String level){
+        try{
+           return problemRepository.findProblemsByDifficulty(level);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+}
+
 }
