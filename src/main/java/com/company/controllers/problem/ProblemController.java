@@ -5,8 +5,13 @@ import com.company.constants.SuccessConstants;
 import com.company.dto.request.ProblemDTO;
 import com.company.dto.response.SuccessResponse;
 import com.company.entity.problems.Problem;
+import com.company.entity.user.User;
+import com.company.entity.problems.UserProblem;
 import com.company.service.problem.ProblemService;
-import jakarta.validation.Valid;
+import com.company.service.user.UserService;
+import com.company.service.problem.UserProblemService;
+import com.company.utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +29,58 @@ public class ProblemController {
     @Autowired
     public ProblemService problemService;
 
+    @Autowired
+    public UserService userService;
+
+    @Autowired
+    public UserProblemService userProblemService;
+
+    @Autowired
+    public JwtUtil jwtUtil;
+
     private static final Logger logger = LoggerFactory.getLogger(ProblemController.class);
+
+
+    @PostMapping("/create")
+    public ResponseEntity<?> addProblem(@RequestBody ProblemDTO dto, HttpServletRequest request){
+        try{
+
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                throw new RuntimeException("Missing or invalid Authorization header");
+            }
+
+            String token = authHeader.substring(7);
+
+            String email = jwtUtil.extractEmail(token);
+            User user = userService.findByEmail(email);
+
+            Problem problem = new Problem();
+            problem.setTitle(dto.getTitle());
+            problem.setDescription(dto.getDescription());
+            problem.setLanguage(dto.getLanguage());
+            problem.setDifficulty(dto.getDifficulty());
+            problem.setLinks(dto.getLinks());
+
+            Problem savedDetails =  problemService.addProblem(problem);
+
+            UserProblem details = new UserProblem();
+            details.setSolved(false);
+
+            details.setProblem(savedDetails);
+            details.setUser(user);
+            int score = dto.getDifficulty().equals("EASY") ? 2 : dto.getDifficulty().equals("MEDIUM") ? 4 : 8;
+            details.setPoints(score);
+
+            userProblemService.addUserProblem(details);
+
+            SuccessResponse response = new SuccessResponse("SUC-200","Details Added Successfully",savedDetails.getId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
     @GetMapping("/get")
@@ -41,24 +97,6 @@ public class ProblemController {
         }
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<?> addProblem(@RequestBody ProblemDTO dto){
-        try{
-            Problem problem = new Problem();
-            problem.setTitle(dto.getTitle());
-            problem.setDescription(dto.getDescription());
-            problem.setLanguage(dto.getLanguage());
-            problem.setDifficulty(dto.getDifficulty());
-            problem.setLinks(dto.getLinks());
-            problem.setTopics(dto.getTopics());
-
-           Problem savedDetails =  problemService.addProblem(problem);
-           SuccessResponse response = new SuccessResponse("SUC-200","Details Added Successfully",savedDetails.getId());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllProblemsController(){
@@ -71,15 +109,32 @@ public class ProblemController {
     }
 
 
-    @DeleteMapping("/")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> deleteProblem(@NotNull(message = "Id can't be null") @RequestParam int id){
         try{
+            Problem isExist = problemService.getProblemById(id);
+            if(isExist==null){
+                logger.error("Problem not found for this ID: {}",id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorConstants.PROBLEM_NOT_FOUND);
+            }
+
+            userProblemService.findAndDeleteByProblemId(id);
             boolean isDeleted = problemService.deleteProblemById(id);
             if(!isDeleted){
                 logger.error("Problem not found for this ID: {}",id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorConstants.PROBLEM_NOT_FOUND);
             }
             return ResponseEntity.ok(new SuccessResponse("SUC-200","Problem Deleted Successfully",true));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/difficulty-level")
+    public ResponseEntity<?> findByDifficultyLevel(@RequestParam String level){
+        try{
+            List<Problem> list = problemService.findProblemByDifficultyLevel(level);
+            return ResponseEntity.ok(new SuccessResponse("SUCCESS","Problems fetched by difficulty",list));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

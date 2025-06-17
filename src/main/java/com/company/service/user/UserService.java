@@ -56,4 +56,12 @@ public class UserService {
             throw new RuntimeException(e);
         }
     }
+
+    public User findByEmail(String email){
+        try{
+            return userRepository.findByEmail(email);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
