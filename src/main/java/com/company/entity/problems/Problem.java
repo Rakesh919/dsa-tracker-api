@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Cascade;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name="problems")
 @EntityListeners(AuditingEntityListener.class)
+@org.hibernate.annotations.DynamicUpdate
 public class Problem {
 
     @Id
@@ -32,14 +34,20 @@ public class Problem {
     private String difficulty;
 
     @ElementCollection
+    @CollectionTable(
+            name = "problem_topics",
+            joinColumns = @JoinColumn(name = "problem_id")
+    )
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
     private List<String> topics;
 
     @ElementCollection
+    @CollectionTable(
+            name = "problem_links",
+            joinColumns = @JoinColumn(name = "problem_id")
+    )
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
     private List<String> links;
-
-//    @ElementCollection
-//    @Column(columnDefinition = "TEXT")
-//    private List<String> solutions;
 
     @CreatedDate
     private LocalDateTime createdAt;

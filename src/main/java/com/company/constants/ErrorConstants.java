@@ -14,4 +14,6 @@ public class ErrorConstants {
     public static final ErrorResponse EMAIL_NOT_FOUND = new ErrorResponse("Email Not Found","NOT-404");
     public static final ErrorResponse OTP_NOT_MATCH = new ErrorResponse("Invalid Otp","BAD-400");
     public static final ErrorResponse EMAIL_IS_REQUIRED = new ErrorResponse("Email is Required","BAD-400");
+    public static final ErrorResponse TOKEN_IS_REQUIRED = new ErrorResponse("Invalid or Missing Token","BAD-400");
+    public static final ErrorResponse NO_PROBLEM_FOUND = new ErrorResponse("No Problem Found for this user","NOT-404");
 }
