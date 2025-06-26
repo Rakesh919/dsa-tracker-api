@@ -140,4 +140,47 @@ public class ProblemController {
         }
     }
 
+
+    @PutMapping("/edit")
+    public ResponseEntity<?> editProblemController(@RequestParam int id, @RequestBody ProblemDTO dto){
+        try{
+            Problem isExist = problemService.getProblemById(id);
+            if(isExist==null){
+                logger.error("Problem Details not found for this ID: {}",id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorConstants.PROBLEM_NOT_FOUND);
+            }
+            if(dto.getDifficulty()!=null){
+                isExist.setDifficulty(dto.getDifficulty());
+            }
+
+            if(dto.getTitle()!=null){
+                isExist.setTitle(dto.getTitle());
+            }
+
+            if(dto.getLinks()!=null){
+                isExist.setLinks(dto.getLinks());
+            }
+
+            if(dto.getLanguage()!=null){
+                isExist.setLanguage(dto.getLanguage());
+            }
+
+            if(dto.getDescription()!=null){
+                isExist.setDescription(dto.getDescription());
+            }
+
+            if(dto.getTopics()!=null){
+                isExist.setTopics(dto.getTopics());
+            }
+
+
+            Problem updatedDetails = problemService.addProblem(isExist);
+
+            return ResponseEntity.ok(new SuccessResponse("SUCCESS","Problem Details updated Successfully",updatedDetails));
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

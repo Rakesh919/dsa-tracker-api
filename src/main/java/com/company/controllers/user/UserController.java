@@ -104,4 +104,75 @@ public class UserController {
         }
     }
 
+    public ResponseEntity<?> loginUserController(@RequestParam String email, @RequestParam String password){
+        try{
+            if(email==null){
+                logger.error("Email is Required");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorConstants.EMAIL_IS_REQUIRED);
+            }
+
+            if(password==null){
+                logger.error("Password is Required");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorConstants.PASSWORD_IS_REQUIRED);
+            }
+
+            boolean isMatch = userService.isEmailExists(email);
+            if(!isMatch){
+                logger.error("No record found for this Email {}",email);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorConstants.NO_RECORD_FOUND_FOR_EMAIL);
+            }
+
+            User isExists = userService.findByEmail(email);
+            String hashed_password = isExists.getPassword();
+
+            boolean isPasswordMatch = passwordUtil.matchPassword(password,hashed_password);
+            if(!isPasswordMatch){
+                logger.error("Password do not match for this Email {}",email);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorConstants.PASSWORD_DO_NOT_MATCH);
+            }
+
+            String username = String.valueOf(isExists.getId());
+            String token = jwtUtil.generateToken(username,email);
+            return ResponseEntity.ok(new SuccessResponse("SUCCESS","User Logged In Successfully",token));
+        }catch (Exception e){
+            throw  new RuntimeException(e);
+        }
+    }
+
+
+    @PostMapping("/reset-otp")
+    public ResponseEntity<?> resetPasswordOtp(@RequestParam @Email(message = "Please enter a valid email") String email){
+        try{
+            if(email==null) {
+                logger.error("Email is Required, Not found in params");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorConstants.EMAIL_IS_REQUIRED);
+            }
+
+            boolean isExists = userService.isEmailExists(email);
+            if(!isExists){
+                logger.error("User Not found with this Email");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorConstants.NO_RECORD_FOUND_FOR_EMAIL);
+            }
+            int otp = util.generateRandomNumber();
+
+            otpService.updateOtp(email,otp);
+            emailService.sendEmail(email,"OTP for password reset",String.valueOf(otp));
+            return ResponseEntity.ok(new SuccessResponse("SUCCESS","OTP sent successfully",otp));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+//    public ResponseEntity<?> resetPasswordController(@RequestParam String email, int otp){
+//        try{
+//
+//            if(email==null || !otp){
+//
+//            }
+//
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
 }

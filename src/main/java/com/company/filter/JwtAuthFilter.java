@@ -37,7 +37,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-    private final List<String> excludedPaths = List.of("/auth/login","/auth/signup-otp", "/auth/register", "/public");
+    private final List<String> excludedPaths = List.of("/auth/login","/auth/signup-otp", "/auth/register", "/public","/swagger-ui/index.html","/v3/api-docs");
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
